@@ -166,6 +166,12 @@ module.exports = class extends Generator {
             self.subPackageName +
             '/dto/'
         );
+        const mapperDir = self.destinationPath(
+          'src/main/java/' +
+          packageNameTemp +
+          '/mapper/' +
+          self.subPackageName+"/"
+        );
 
         if (!fileSys.existsSync(dtoDir)) {
           self.spawnCommandSync('mkdir', ['-p', dtoDir]);
@@ -185,6 +191,29 @@ module.exports = class extends Generator {
             self.packageName + '.domain.' + self.subPackageName + '.dto'
           );
         self.fs.write(dtoDir + self.domainName + 'Dto.java', dtoFileStr);
+        //  //修改Mapper文件
+        // const mapperFileStr = self.fs.read(
+        //   mapperDir + self.domainName + 'Mapper.java'
+        // );
+        //
+        // const mapperFileStrNew = mapperFileStr
+        //   .replace(
+        //     'extends Mapper<' + self.domainName+'>',
+        //     'extends Mapper<'+self.domainName +'>, DeleteLogicMapper<'+self.domainName+'>'
+        //   )
+
+        const mapperFileStrNew = 'MyMapperAndIds<'+self.domainName +'>, DeleteLogicMapper<'+self.domainName+'> {';
+        const newStr = "s/Mapper<.*" + "/" + mapperFileStrNew + "/g"
+
+
+
+        self.spawnCommandSync('sed', ['-i', newStr, mapperDir + self.domainName + 'Mapper.java']);
+
+        self.spawnCommandSync('sed', ['-i', '2aimport java\.util\.Map;', mapperDir + self.domainName + 'Mapper.java']);
+
+        self.spawnCommandSync('sed', ['-i', '2aimport com\.wisdom\.utils\.mapper\.LogicDelete\.DeleteLogicMapper;', mapperDir + self.domainName + 'Mapper.java']);
+        self.spawnCommandSync('sed', ['-i', '2aimport com\.wisdom\.utils\.mapper\.MyMapperAndIds;', mapperDir + self.domainName + 'Mapper.java']);
+
 
         // 创建mapstruct文件
         const mapStructSourceFile = self.templatePath(
